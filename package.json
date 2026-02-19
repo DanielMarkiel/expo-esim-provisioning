@@ -1,6 +1,6 @@
 {
   "name": "expo-esim-provisioning",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Expo native module for eSIM provisioning — install profiles, scan QR codes, and check device eSIM support on Android and iOS",
   "main": "build/index.js",
   "types": "build/index.d.ts",
