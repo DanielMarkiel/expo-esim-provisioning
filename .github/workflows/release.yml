@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    name: Version or Publish
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write # create GitHub Release + push commits/tags
+      pull-requests: write # open the "Version Packages" PR
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create Version PR or Publish
+        uses: changesets/action@v1
+        with:
+          # Run when changesets bot merges the Version Packages PR
+          publish: npm run changeset:release
+          # Commit message for the auto-bump commit inside the Version PR
+          commit: 'chore: version packages'
+          # Title of the Version Packages pull request
+          title: 'chore: version packages'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
