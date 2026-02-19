@@ -8,7 +8,7 @@ on:
 
 jobs:
   check:
-    name: Lint, Build & Type-check
+    name: Lint, Test, Build & Type-check
     runs-on: ubuntu-latest
 
     steps:
@@ -26,6 +26,9 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Test
+        run: npm test -- --runInBand --watch=false
 
       - name: Build
         run: npm run build
