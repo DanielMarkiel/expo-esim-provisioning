@@ -16,7 +16,7 @@
     "open:ios": "xed example/ios",
     "open:android": "open -a \"Android Studio\" example/android",
     "changeset": "changeset",
-    "changeset:version": "changeset version",
+    "changeset:version": "changeset version && node scripts/sync-android-version.js",
     "changeset:release": "npm run build && changeset publish"
   },
   "keywords": [
