@@ -1,7 +1,11 @@
 # expo-esim-provisioning
 
-Cross-platform Expo module for eSIM provisioning on Android and iOS. Install eSIM profiles, scan QR codes, and check
-device support — all from a single API.
+[![npm version](https://img.shields.io/npm/v/expo-esim-provisioning.svg)](https://www.npmjs.com/package/expo-esim-provisioning)
+[![License](https://img.shields.io/npm/l/expo-esim-provisioning.svg)](https://github.com/DanielMarkiel/expo-esim-provisioning/blob/main/LICENSE)
+[![Platform](https://img.shields.io/badge/platform-android%20%7C%20ios-blue.svg)](https://github.com/DanielMarkiel/expo-esim-provisioning)
+
+Cross-platform React Native & Expo module for eSIM provisioning on Android and iOS. Install eSIM profiles, scan QR
+codes, and check device support — all from a single API.
 
 ## Features
 
