@@ -23,6 +23,35 @@ codes, and check device support — all from a single API.
 | **Android** | Native module using `EuiccManager` API (API 28+). Samsung-specific `ACTION_START_EUICC_ACTIVATION` on Android 11+. Includes AIDL `CarrierEuiccProvisioningService`. |
 | **iOS**     | Apple Universal Link (`esimsetup.apple.com`) which presents the native eSIM setup modal. Requires iOS 17.4+. No restricted entitlements needed.                     |
 
+## Demo
+
+> **Note:** The demo uses test data and shows the error flow, as real eSIM installation requires activation codes from
+> an eSIM provider. See the [Testing](#testing) section for information on obtaining real test credentials.
+
+<div align="center">
+
+### iOS - Installation Flow (Error Handling)
+
+<img src="assets/demo-ios.gif" alt="iOS Demo" width="300"/>
+
+_Demo shows: ✓ Device support check → ✓ Native eSIM modal opens → ✓ Error handling with typed errors_
+
+### Android - Installation Flow (Error Handling)
+
+<img src="assets/demo-android.gif" alt="Android Demo" width="300"/>
+
+_Demo shows: ✓ Device support check → ✓ System eSIM dialog opens → ✓ Error handling with typed errors_
+
+</div>
+
+**What the demo demonstrates:**
+
+- ✅ `isEsimSupported()` device capability detection
+- ✅ Native eSIM UI integration (iOS Universal Link / Android Intent)
+- ✅ Typed error handling with `EsimProvisioningError`
+- ✅ Loading states and user feedback
+- ⚠️ Installation fails with test data (expected — see [Testing](#testing) for real credentials)
+
 ## Requirements
 
 | Requirement  | Minimum  |
@@ -203,6 +232,72 @@ chip is enabled, and the system LPA is available. This checks hardware capabilit
 
 **iOS:** Checks the OS version (≥ 17.4). Hardware detection is not possible without the restricted entitlement, but
 virtually all iPhones since iPhone XS (2018) have eSIM support, so the version check is a reasonable proxy.
+
+## Testing
+
+### Using real eSIM profiles
+
+To test actual eSIM installation (not just the error flow), you need real activation codes from an eSIM provider.
+
+**eSIM providers with developer/test programs:**
+
+- **[Truphone](https://www.truphone.com/developer/)** — Developer program with test eSIM profiles
+- **[Airalo](https://www.airalo.com/)** — Purchase inexpensive data plans ($3-5) for testing
+- **[1Global](https://www.1global.com/)** — eSIM API and developer access
+- **[GigSky](https://www.gigsky.com/)** — Developer partnerships available
+
+### What you can test without real credentials
+
+```typescript
+import { isEsimSupported, buildActivationString } from 'expo-esim-provisioning';
+
+// ✅ Always works — checks device capability
+const isSupported = isEsimSupported();
+console.log('eSIM supported:', isSupported);
+
+// ✅ Always works — builds LPA string from any data
+const lpa = buildActivationString({
+  smdpAddress: 'test.example.com',
+  activationCode: 'TEST-123',
+});
+console.log('LPA string:', lpa); // "LPA:1$test.example.com$TEST-123"
+
+// ⚠️ Opens native UI but will fail without real activation code
+await installEsim({
+  smdpAddress: 'test.example.com',
+  activationCode: 'TEST-123',
+});
+// → Throws EsimProvisioningError with code 'INSTALL_FAILED'
+```
+
+### Testing the UI flow with test data
+
+Even with invalid credentials, you can verify:
+
+1. **Device support detection** — `isEsimSupported()` returns correct value
+2. **Native UI integration** — System eSIM modal/dialog opens correctly
+3. **Error handling** — `EsimProvisioningError` is thrown with the correct `code`
+4. **Loading states** — UI shows loading indicators during async operations
+5. **Platform differences** — iOS Universal Link vs Android Intent behavior
+
+This is sufficient for developing the UI/UX of your app before obtaining real eSIM credentials.
+
+### Example with QR code (Android)
+
+If you have a physical QR code from an eSIM provider:
+
+```typescript
+import { scanQrCode, installEsim } from 'expo-esim-provisioning';
+
+// Scan QR code to get LPA string
+const lpaString = await scanQrCode();
+
+// Use scanned data for installation
+await installEsim({ lpaString });
+```
+
+> **Supported devices:** QR scanning primarily works on Samsung devices (Android 11+) using
+> `ACTION_START_EUICC_ACTIVATION`.
 
 ## Acknowledgements
 

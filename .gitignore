@@ -55,3 +55,8 @@ yarn-error.log
 
 # Expo
 .expo/*
+
+# Demo assets - ignore raw video files (but keep GIFs)
+assets/*.mov
+assets/*.mp4
+assets/*.avi
