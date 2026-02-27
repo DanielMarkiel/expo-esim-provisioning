@@ -38,12 +38,16 @@
   "homepage": "https://github.com/DanielMarkiel/expo-esim-provisioning#readme",
   "license": "MIT",
   "author": "Daniel Markiel  (https://github.com/DanielMarkiel)",
+  "sideEffects": false,
   "files": [
     "build",
     "android",
     "src",
     "expo-module.config.json"
   ],
+  "engines": {
+    "node": ">=18"
+  },
   "peerDependencies": {
     "expo": ">=51.0.0",
     "react": ">=18.0.0",

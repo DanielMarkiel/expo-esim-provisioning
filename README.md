@@ -1,6 +1,7 @@
 # expo-esim-provisioning
 
 [![npm version](https://img.shields.io/npm/v/expo-esim-provisioning.svg)](https://www.npmjs.com/package/expo-esim-provisioning)
+[![CI](https://github.com/DanielMarkiel/expo-esim-provisioning/actions/workflows/ci.yml/badge.svg)](https://github.com/DanielMarkiel/expo-esim-provisioning/actions/workflows/ci.yml)
 [![License](https://img.shields.io/npm/l/expo-esim-provisioning.svg)](https://github.com/DanielMarkiel/expo-esim-provisioning/blob/main/LICENSE)
 [![Platform](https://img.shields.io/badge/platform-android%20%7C%20ios-blue.svg)](https://github.com/DanielMarkiel/expo-esim-provisioning)
 

@@ -1,0 +1,102 @@
+name: Bug Report
+description: Report a bug in expo-esim-provisioning
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill in as much detail as possible.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug description
+      description: A clear and concise description of what the bug is.
+      placeholder: 'When calling `installEsim()`, the app crashes with...'
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Step-by-step instructions to reproduce the bug.
+      placeholder: |
+        1. Call `isEsimSupported()`
+        2. Call `installEsim({ smdpAddress: '...', activationCode: '...' })`
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: What actually happened? Include the full error message and stack trace if available.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Android
+        - iOS
+        - Both
+    validations:
+      required: true
+
+  - type: input
+    id: package_version
+    attributes:
+      label: expo-esim-provisioning version
+      placeholder: 'e.g. 0.2.0'
+    validations:
+      required: true
+
+  - type: input
+    id: expo_version
+    attributes:
+      label: Expo SDK version
+      placeholder: 'e.g. 53'
+    validations:
+      required: true
+
+  - type: input
+    id: rn_version
+    attributes:
+      label: React Native version
+      placeholder: 'e.g. 0.76.0'
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device / OS version
+      description: Physical device model and OS version (simulators/emulators don't support eSIM).
+      placeholder: 'e.g. Samsung Galaxy S24, Android 14 / iPhone 15 Pro, iOS 17.5'
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Paste any relevant log output, Metro bundler errors, or Logcat/Xcode console output.
+      render: text
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Any other context, screenshots, or information that may help.
