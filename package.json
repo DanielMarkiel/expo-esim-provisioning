@@ -56,11 +56,11 @@
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.2",
     "@changesets/cli": "^2.29.0",
-    "@types/react": "~19.1.17",
-    "expo": "^54.0.33",
-    "expo-module-scripts": "^5.0.8",
-    "expo-modules-core": "^3.0.29",
+    "@types/react": "~19.2.1",
+    "expo": "^55.0.4",
+    "expo-module-scripts": "^55.0.2",
+    "expo-modules-core": "^55.0.13",
     "prettier": "^3.8.1",
-    "react-native": "0.81.5"
+    "react-native": "0.83.2"
   }
 }
