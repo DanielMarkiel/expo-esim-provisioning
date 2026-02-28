@@ -2,7 +2,7 @@ name: Release
 
 on:
   workflow_run:
-    workflows: ['CI']
+    workflows: ["CI"]
     types: [completed]
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
@@ -38,10 +38,12 @@ jobs:
         with:
           # Run when changesets bot merges the Version Packages PR
           publish: npm run changeset:release
+          # Use custom version script to also sync android/build.gradle
+          version: npm run changeset:version
           # Commit message for the auto-bump commit inside the Version PR
-          commit: 'chore: version packages'
+          commit: "chore: version packages"
           # Title of the Version Packages pull request
-          title: 'chore: version packages'
+          title: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
