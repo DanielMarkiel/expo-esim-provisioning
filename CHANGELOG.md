@@ -1,5 +1,13 @@
 # expo-esim-provisioning
 
+## 1.0.0
+
+### Major Changes
+
+- [`d39c0a6`](https://github.com/DanielMarkiel/expo-esim-provisioning/commit/d39c0a67ec0b2bdfc0610591405c401fcdcd921f)
+  Thanks [@DanielMarkiel](https://github.com/DanielMarkiel)! - Upgrade peer dependencies to Expo SDK 55
+  (`expo-modules-core` ^55.0.13, `expo-module-scripts` ^55.0.2, `react-native` 0.83.2, `react` 19.2.0).
+
 ## 0.2.0
 
 ### Minor Changes
