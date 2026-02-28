@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 
 group = 'expo.modules.esimprovisioning'
-version = '0.2.0'
+version = '1.0.0'
 
 def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
 apply from: expoModulesCorePlugin
@@ -34,8 +34,8 @@ if (useManagedAndroidSdkVersions) {
 android {
   namespace "expo.modules.esimprovisioning"
   defaultConfig {
-    versionCode 200
-    versionName "0.2.0"
+    versionCode 10000
+    versionName "1.0.0"
   }
   lintOptions {
     abortOnError false
