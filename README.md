@@ -15,6 +15,7 @@ codes, and check device support — all from a single API.
 - **`buildActivationString(data)`** — Build LPA strings from SM-DP+ address + activation code
 - **`install(activationCode)`** — Low-level Android native eSIM activation
 - **`scanQrCode()`** — Launch QR code scanner for eSIM provisioning (Samsung)
+- **`getActiveSubscriptionCount()`** — Count active cellular subscriptions (iOS: physical SIM + eSIM)
 - **`EsimProvisioningError`** — Typed error class with machine-readable `code`
 
 ### Platform implementation
@@ -122,23 +123,34 @@ await installEsim({
 
 ### iOS-specific: detecting return from eSIM setup
 
-On iOS, `installEsim` opens the system eSIM modal via a Universal Link. The app goes to background. Use `AppState` to
-detect when the user returns:
+On iOS, `installEsim` opens the system eSIM modal via a Universal Link. The app goes to background and there is no
+callback. Use `getActiveSubscriptionCount()` to snapshot the subscription count before and after — if the count
+increased, the eSIM was installed; if unchanged, the user likely canceled:
 
 ```typescript
 import { AppState } from 'react-native';
-import { installEsim } from 'expo-esim-provisioning';
+import { getActiveSubscriptionCount, installEsim } from 'expo-esim-provisioning';
+
+const countBefore = getActiveSubscriptionCount(); // e.g. 1
 
 await installEsim({ lpaString: '...' });
 
 // Listen for app returning to foreground
 const subscription = AppState.addEventListener('change', (state) => {
   if (state === 'active') {
-    // Re-check eSIM status from your backend
+    const countAfter = getActiveSubscriptionCount();
+    if (countAfter > countBefore) {
+      // eSIM installed — confirm with your backend
+    } else {
+      // User likely canceled — skip polling
+    }
     subscription.remove();
   }
 });
 ```
+
+> **Note:** `getActiveSubscriptionCount()` uses `CTTelephonyNetworkInfo` on iOS. On Android the install intent already
+> provides a definitive result (success / `USER_CANCELED`), so this heuristic is not needed.
 
 ## API Reference
 
@@ -193,6 +205,21 @@ Low-level: launch the Android system eSIM activation UI directly with an LPA str
 ### `scanQrCode(): Promise<string>` _(Android only)_
 
 Launch the system QR code scanner for eSIM provisioning. Primarily supported on Samsung devices (Android 11+).
+
+### `getActiveSubscriptionCount(): number`
+
+Returns the number of active cellular subscriptions (physical SIM + eSIM) on the device.
+
+- **iOS:** Reads `CTTelephonyNetworkInfo.serviceSubscriberCellularProviders` count. Useful for detecting whether an eSIM
+  was installed after returning from the system setup flow (snapshot before vs. after).
+- **Android:** Returns `-1` (not needed — the install intent provides a definitive result).
+- **Other:** Returns `-1`.
+
+```typescript
+import { getActiveSubscriptionCount } from 'expo-esim-provisioning';
+
+const count = getActiveSubscriptionCount(); // e.g. 1 (one physical SIM)
+```
 
 ### `EsimProvisioningError`
 

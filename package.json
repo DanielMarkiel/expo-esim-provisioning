@@ -42,6 +42,7 @@
   "files": [
     "build",
     "android",
+    "ios",
     "src",
     "expo-module.config.json"
   ],

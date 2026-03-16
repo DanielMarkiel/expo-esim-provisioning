@@ -5,6 +5,7 @@ const mockNativeModule = {
   isEsimSupported: jest.fn(),
   install: jest.fn(),
   scanQrCode: jest.fn(),
+  getActiveSubscriptionCount: jest.fn(),
 };
 
 jest.mock('../EsimProvisioningModule', () => ({ default: mockNativeModule }));
@@ -15,7 +16,7 @@ jest.mock('react-native', () => ({
 }));
 
 const { EsimProvisioningError } = require('../EsimProvisioningError') as typeof import('../EsimProvisioningError');
-const { installEsim, isEsimSupported } = require('../index') as typeof import('../index');
+const { getActiveSubscriptionCount, installEsim, isEsimSupported } = require('../index') as typeof import('../index');
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -180,5 +181,32 @@ describe('installEsim — Android', () => {
     await expect(installEsim({ smdpAddress: 'smdp.example.com', activationCode: 'ABC' })).rejects.toMatchObject({
       code: 'INSTALL_FAILED',
     });
+  });
+});
+
+describe('getActiveSubscriptionCount', () => {
+  it('returns native value on iOS', () => {
+    mockPlatform.OS = 'ios';
+    mockNativeModule.getActiveSubscriptionCount.mockReturnValue(2);
+    expect(getActiveSubscriptionCount()).toBe(2);
+  });
+
+  it('returns native value on Android', () => {
+    mockPlatform.OS = 'android';
+    mockNativeModule.getActiveSubscriptionCount.mockReturnValue(-1);
+    expect(getActiveSubscriptionCount()).toBe(-1);
+  });
+
+  it('returns -1 on unsupported platform', () => {
+    mockPlatform.OS = 'web';
+    expect(getActiveSubscriptionCount()).toBe(-1);
+  });
+
+  it('returns -1 when native module throws', () => {
+    mockPlatform.OS = 'ios';
+    mockNativeModule.getActiveSubscriptionCount.mockImplementation(() => {
+      throw new Error('native crash');
+    });
+    expect(getActiveSubscriptionCount()).toBe(-1);
   });
 });

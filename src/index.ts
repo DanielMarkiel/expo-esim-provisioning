@@ -15,21 +15,26 @@ const APPLE_ESIM_UNIVERSAL_LINK = 'https://esimsetup.apple.com/esim_qrcode_provi
 const IOS_MIN_VERSION = 17.4;
 
 // ---------------------------------------------------------------------------
-// Android native module (lazy-loaded to avoid crash on iOS)
+// Native module (lazy-loaded per platform)
 // ---------------------------------------------------------------------------
 
-let _androidModule: EsimProvisioningNativeModule | null | undefined;
+let _nativeModule: EsimProvisioningNativeModule | null | undefined;
+
+function getNativeModule(): EsimProvisioningNativeModule | null {
+  if (Platform.OS !== 'android' && Platform.OS !== 'ios') return null;
+  if (_nativeModule !== undefined) return _nativeModule;
+  try {
+    const bridge = require('./EsimProvisioningModule');
+    _nativeModule = bridge.default ?? null;
+  } catch {
+    _nativeModule = null;
+  }
+  return _nativeModule ?? null;
+}
 
 function getAndroidModule(): EsimProvisioningNativeModule | null {
   if (Platform.OS !== 'android') return null;
-  if (_androidModule !== undefined) return _androidModule;
-  try {
-    const bridge = require('./EsimProvisioningModule');
-    _androidModule = bridge.default ?? null;
-  } catch {
-    _androidModule = null;
-  }
-  return _androidModule ?? null;
+  return getNativeModule();
 }
 
 // ---------------------------------------------------------------------------
@@ -189,6 +194,40 @@ export async function scanQrCode(): Promise<string> {
     throw new EsimProvisioningError('UNSUPPORTED', 'eSIM native module is not available');
   }
   return wrapAndroidCall(() => mod.scanQrCode());
+}
+
+// ---------------------------------------------------------------------------
+// getActiveSubscriptionCount
+// ---------------------------------------------------------------------------
+
+/**
+ * Return the number of active cellular subscriptions on the device.
+ *
+ * - **iOS:** Uses `CTTelephonyNetworkInfo.serviceSubscriberCellularProviders`
+ *   to count active plans (physical SIM + eSIM). Useful for detecting whether
+ *   an eSIM was installed after returning from the system setup flow.
+ * - **Android:** Returns `-1` (not needed — the install intent already
+ *   provides a definitive result via promise rejection/resolution).
+ * - **Other:** Returns `-1`.
+ *
+ * @returns Number of active subscriptions, or `-1` when unavailable.
+ *
+ * @example
+ * ```ts
+ * const before = getActiveSubscriptionCount(); // e.g. 1
+ * await installEsim(data);
+ * // … user returns from Settings …
+ * const after = getActiveSubscriptionCount();  // e.g. 2 → installed!
+ * ```
+ */
+export function getActiveSubscriptionCount(): number {
+  const mod = getNativeModule();
+  if (!mod) return -1;
+  try {
+    return mod.getActiveSubscriptionCount();
+  } catch {
+    return -1;
+  }
 }
 
 // ---------------------------------------------------------------------------

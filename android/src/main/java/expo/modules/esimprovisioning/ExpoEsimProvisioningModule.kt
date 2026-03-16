@@ -39,6 +39,8 @@ class ExpoEsimProvisioningModule : Module() {
             euiccManager?.isEnabled == true
         }
 
+        Function("getActiveSubscriptionCount") { -1 }
+
         RegisterActivityContracts {
             activityResultLauncher = registerForActivityResult(activityResultContract)
         }

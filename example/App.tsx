@@ -2,6 +2,7 @@ import {
   buildActivationString,
   EsimProvisioningError,
   EsimProvisioningErrorCode,
+  getActiveSubscriptionCount,
   install,
   installEsim,
   isEsimSupported,
@@ -36,19 +37,35 @@ type ResultState =
 
 export default function App() {
   const [supported, setSupported] = useState<boolean | null>(null);
+  const [subscriptionCount, setSubscriptionCount] = useState<number>(-1);
   const appState = useRef(AppState.currentState);
-  const [returnedFromEsim, setReturnedFromEsim] = useState(false);
+  const subscriptionCountBefore = useRef(-1);
+  const [returnBanner, setReturnBanner] = useState<string | null>(null);
 
   useEffect(() => {
     setSupported(isEsimSupported());
+    setSubscriptionCount(getActiveSubscriptionCount());
   }, []);
 
-  // Detect return from iOS eSIM setup sheet
+  // Detect return from iOS eSIM setup sheet and compare subscription count
   useEffect(() => {
     const sub = AppState.addEventListener('change', (next: AppStateStatus) => {
       if (appState.current.match(/inactive|background/) && next === 'active') {
-        setReturnedFromEsim(true);
-        setTimeout(() => setReturnedFromEsim(false), 4000);
+        const countAfter = getActiveSubscriptionCount();
+        setSubscriptionCount(countAfter);
+
+        if (Platform.OS === 'ios' && subscriptionCountBefore.current >= 0) {
+          const before = subscriptionCountBefore.current;
+          if (countAfter > before) {
+            setReturnBanner(`New subscription detected (${before} → ${countAfter}) — confirm with backend`);
+          } else {
+            setReturnBanner(`Subscription count unchanged (${countAfter}) — user likely canceled`);
+          }
+          subscriptionCountBefore.current = -1;
+        } else {
+          setReturnBanner('↩ Returned from eSIM setup — re-check status with your backend');
+        }
+        setTimeout(() => setReturnBanner(null), 5000);
       }
       appState.current = next;
     });
@@ -69,17 +86,17 @@ export default function App() {
         </View>
 
         {/* eSIM Support Status */}
-        <SupportCard supported={supported} />
+        <SupportCard supported={supported} subscriptionCount={subscriptionCount} />
 
         {/* iOS return banner */}
-        {returnedFromEsim && (
+        {returnBanner && (
           <View style={styles.banner}>
-            <Text style={styles.bannerText}>↩ Returned from eSIM setup — re-check status with your backend</Text>
+            <Text style={styles.bannerText}>{returnBanner}</Text>
           </View>
         )}
 
         {/* Install eSIM */}
-        <InstallSection supported={supported} />
+        <InstallSection supported={supported} subscriptionCountBefore={subscriptionCountBefore} />
 
         {/* Android-only */}
         {Platform.OS === 'android' && <AndroidSection />}
@@ -96,7 +113,7 @@ export default function App() {
 
 // ─── Support Status Card ──────────────────────────────────────────────────────
 
-function SupportCard({ supported }: { supported: boolean | null }) {
+function SupportCard({ supported, subscriptionCount }: { supported: boolean | null; subscriptionCount: number }) {
   const icon = supported === null ? '⏳' : supported ? '✅' : '❌';
   const label = supported === null ? 'Checking…' : supported ? 'eSIM supported' : 'eSIM not supported';
 
@@ -114,6 +131,11 @@ function SupportCard({ supported }: { supported: boolean | null }) {
     }
   }
 
+  const countLabel =
+    subscriptionCount >= 0
+      ? `Active subscriptions: ${subscriptionCount} (via CTTelephonyNetworkInfo)`
+      : 'Active subscriptions: N/A';
+
   return (
     <Card title="Device Support">
       <View style={styles.supportRow}>
@@ -121,6 +143,7 @@ function SupportCard({ supported }: { supported: boolean | null }) {
         <View style={styles.supportText}>
           <Text style={[styles.supportLabel, supported === false && styles.textDanger]}>{label}</Text>
           {!!detail && <Text style={styles.supportDetail}>{detail}</Text>}
+          <Text style={styles.supportDetail}>{countLabel}</Text>
         </View>
       </View>
       {supported === false && (
@@ -137,7 +160,13 @@ function SupportCard({ supported }: { supported: boolean | null }) {
 
 // ─── Install Section ──────────────────────────────────────────────────────────
 
-function InstallSection({ supported }: { supported: boolean | null }) {
+function InstallSection({
+  supported,
+  subscriptionCountBefore,
+}: {
+  supported: boolean | null;
+  subscriptionCountBefore: React.MutableRefObject<number>;
+}) {
   const [useLpa, setUseLpa] = useState(false);
   const [lpaString, setLpaString] = useState('');
   const [smdpAddress, setSmdpAddress] = useState('');
@@ -146,18 +175,22 @@ function InstallSection({ supported }: { supported: boolean | null }) {
 
   const handleInstall = useCallback(async () => {
     setResult({ status: 'loading' });
+    if (Platform.OS === 'ios') {
+      subscriptionCountBefore.current = getActiveSubscriptionCount();
+    }
     try {
       const data = useLpa ? { lpaString } : { smdpAddress, activationCode };
       const msg = await installEsim(data);
       setResult({ status: 'success', message: msg });
     } catch (e) {
+      subscriptionCountBefore.current = -1;
       if (e instanceof EsimProvisioningError) {
         setResult({ status: 'error', code: e.code, message: e.message });
       } else {
         setResult({ status: 'error', code: 'UNKNOWN', message: String(e) });
       }
     }
-  }, [useLpa, lpaString, smdpAddress, activationCode]);
+  }, [useLpa, lpaString, smdpAddress, activationCode, subscriptionCountBefore]);
 
   const isDisabled = supported === false || result.status === 'loading';
 

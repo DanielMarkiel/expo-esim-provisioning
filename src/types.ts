@@ -36,4 +36,5 @@ export type EsimProvisioningNativeModule = {
   isEsimSupported(): boolean;
   install(activationCode: string): Promise<string>;
   scanQrCode(): Promise<string>;
+  getActiveSubscriptionCount(): number;
 };
