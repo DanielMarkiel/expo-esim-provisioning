@@ -57,9 +57,9 @@ export default function App() {
         if (Platform.OS === 'ios' && subscriptionCountBefore.current >= 0) {
           const before = subscriptionCountBefore.current;
           if (countAfter > before) {
-            setReturnBanner(`New subscription detected (${before} → ${countAfter}) — confirm with backend`);
+            setReturnBanner(`New subscription detected (${before} → ${countAfter}) — confirm with backend (full poll)`);
           } else {
-            setReturnBanner(`Subscription count unchanged (${countAfter}) — user likely canceled`);
+            setReturnBanner(`Subscription count unchanged (${countAfter}) — ambiguous, short poll as fallback`);
           }
           subscriptionCountBefore.current = -1;
         } else {

@@ -124,33 +124,15 @@ await installEsim({
 ### iOS-specific: detecting return from eSIM setup
 
 On iOS, `installEsim` opens the system eSIM modal via a Universal Link. The app goes to background and there is no
-callback. Use `getActiveSubscriptionCount()` to snapshot the subscription count before and after — if the count
-increased, the eSIM was installed; if unchanged, the user likely canceled:
+callback. Use `getActiveSubscriptionCount()` to snapshot the count before and after as a **hint** to optimize polling:
 
-```typescript
-import { AppState } from 'react-native';
-import { getActiveSubscriptionCount, installEsim } from 'expo-esim-provisioning';
+- **Count increased** → eSIM likely installed, poll backend with full timeout.
+- **Count unchanged** → ambiguous (cancel _or_ eSIM installed but not yet active), poll with a shorter timeout.
 
-const countBefore = getActiveSubscriptionCount(); // e.g. 1
-
-await installEsim({ lpaString: '...' });
-
-// Listen for app returning to foreground
-const subscription = AppState.addEventListener('change', (state) => {
-  if (state === 'active') {
-    const countAfter = getActiveSubscriptionCount();
-    if (countAfter > countBefore) {
-      // eSIM installed — confirm with your backend
-    } else {
-      // User likely canceled — skip polling
-    }
-    subscription.remove();
-  }
-});
-```
-
-> **Note:** `getActiveSubscriptionCount()` uses `CTTelephonyNetworkInfo` on iOS. On Android the install intent already
-> provides a definitive result (success / `USER_CANCELED`), so this heuristic is not needed.
+> **Note:** The API uses `CTTelephonyNetworkInfo.serviceSubscriberCellularProviders` (deprecated in iOS 16, no
+> replacement). It only counts **enabled** subscriptions — disabled or newly installed eSIM profiles that haven't
+> connected yet are not included. On Android the install intent provides a definitive result, so this heuristic is not
+> needed.
 
 ## API Reference
 
@@ -208,10 +190,11 @@ Launch the system QR code scanner for eSIM provisioning. Primarily supported on 
 
 ### `getActiveSubscriptionCount(): number`
 
-Returns the number of active cellular subscriptions (physical SIM + eSIM) on the device.
+Returns the number of **active** (enabled, connected) cellular subscriptions on the device.
 
-- **iOS:** Reads `CTTelephonyNetworkInfo.serviceSubscriberCellularProviders` count. Useful for detecting whether an eSIM
-  was installed after returning from the system setup flow (snapshot before vs. after).
+- **iOS:** Reads `CTTelephonyNetworkInfo.serviceSubscriberCellularProviders` count (deprecated in iOS 16, no replacement).
+  Only counts enabled subscriptions — disabled or newly installed profiles may not be reflected. Useful as a hint
+  when returning from the system eSIM setup flow (snapshot before vs. after).
 - **Android:** Returns `-1` (not needed — the install intent provides a definitive result).
 - **Other:** Returns `-1`.
 
